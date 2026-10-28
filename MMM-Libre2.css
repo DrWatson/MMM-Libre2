@@ -5,6 +5,6 @@
 .MMM-Libre2 .libre-time, .MMM-Libre2 .libre-status { font-size: 15px; color: #aaa; margin-top: 5px; overflow-wrap: anywhere; }
 .MMM-Libre2 .libre-warning { color: #ffcd66; font-size: 18px; margin-top: 10px; }
 .MMM-Libre2 .libre-unavailable .libre-value { color: #999; }
-.MMM-Libre2 .libre-graph { width: 100%; height: 110px; min-height: 80px; flex: 1 0 80px; display: block; }
+.MMM-Libre2 .libre-graph { width: 100%; height: 0; min-height: 80px; flex: 1 0 80px; display: block; }
 .MMM-Libre2 .libre-graph-label { font-size: 14px; color: #aaa; margin-top: 16px; text-align: left; }
 .MMM-Libre2 .libre-note { font-size: 12px; color: #888; margin-top: 12px; }

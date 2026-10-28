@@ -13,6 +13,7 @@ This is a secondary information display, not a medical device or glucose alarm. 
 - Optional 12-hour clock without a leading zero, or a 24-hour clock.
 - History graph with hourly gridlines and local clock-hour labels (for example `1PM` in 12-hour mode or `13` in 24-hour mode). If labels would overlap, every other label is hidden; labels are thinned again if needed for very narrow graphs. All hourly gridlines remain visible.
 - Configurable dimensions, visual thresholds, named colors, and footer visibility.
+- Dotted horizontal guides at `minMmol` and `maxMmol`, using `underColor` and `overColor`.
 - Red below the minimum, springgreen within the range, orange above the maximum by default.
 - Stale and cached-data notices; gaps over 20 minutes are not connected.
 
@@ -42,7 +43,7 @@ showSecondaryDisplayText: true
 
 ### Example 2: history crossing both thresholds
 
-An 11.2 mmol/L reading with a rising trend, a 24-hour clock, and the footer hidden. Earlier history dips below 3.9 (red), returns to the configured range (green), then rises above 10 (orange). The large current number remains white; configured threshold colors apply to the graph line and points.
+An 11.2 mmol/L reading with a rising trend, a 24-hour clock, and both the history heading and footer hidden. The graph expands into the freed space. Earlier history dips below 3.9 (red), returns to the configured range (green), then rises above 10 (orange). The large current number remains white; configured threshold colors apply to the graph line and points.
 
 <img src="docs/images/threshold-colors.png" alt="Mockup: 11.2 mmol/L with a rising trend, measured at 13:05 less than one minute ago, and six-hour history changing from green to red to green to orange. Footer hidden." width="400">
 
@@ -50,6 +51,7 @@ Use the first example's settings with:
 
 ```javascript
 timeFormat: 24,
+showGraphLabel: false,
 showSecondaryDisplayText: false
 ```
 
@@ -234,6 +236,7 @@ Open `MagicMirror/config/config.js` in a text editor. Locate the existing `modul
     withinRangeColor: "springgreen",
     staleAfterMinutes: 10,
     showGraph: true,
+    showGraphLabel: true,
     graphHours: 6,
     width: 320,
     height: 360,
@@ -272,21 +275,22 @@ Browser config:
 | timeFormat | `24` | Measurement time: `24` for 00:00–23:59 or `12` for a clock with AM/PM and no leading zero on the hour, such as 1:05 PM (localized to your browser). Graph labels also use this clock format, with no space before AM/PM in 12-hour mode and zero-padded hours in 24-hour mode. Gridlines align to the hour in the mirror computer’s timezone. |
 | staleAfterMinutes | `10` | Age of sensor reading that triggers the stale warning |
 | showGraph | `true` | Display available history |
+| showGraphLabel | `true` | Show “Last X hours” above the graph; set to `false` to hide it |
 | graphHours | `6` | Graph window, limited to 1–12 hours |
 | width | `320` | Module content width in pixels; positive number |
 | height | `360` | Module content height in pixels; positive number |
 | minMmol | `3.9` | Lower graph threshold in mmol/L; uses `underColor` below it |
 | maxMmol | `10` | Upper graph threshold in mmol/L; uses `overColor` above it |
-| overColor | `orange` | CSS named color for graph segments and dots above the maximum |
-| underColor | `red` | CSS named color for graph segments and dots below the minimum |
+| overColor | `orange` | CSS named color for graph segments and dots above the maximum and the dotted maximum guide |
+| underColor | `red` | CSS named color for graph segments and dots below the minimum and the dotted minimum guide |
 | withinRangeColor | `springgreen` | CSS named color within the range, including its boundaries |
 | showSecondaryDisplayText | `true` | Show the bottom “Secondary display · keep Libre alarms active” text; set to `false` to hide it |
 
-Dimensions apply to the module content, excluding MagicMirror's optional header. Small dimensions allow scrolling rather than clipping the content. The graph expands into available height. Invalid dimensions fall back to the defaults.
+Dimensions apply to the module content, excluding MagicMirror's optional header. Small dimensions allow scrolling rather than clipping the content. The graph expands into available height. Hiding `showGraphLabel` or `showSecondaryDisplayText` removes that item and its margins; the graph automatically takes the freed space within the configured module height. A minimum graph height of 80 pixels is retained, so very small modules may scroll. Invalid dimensions fall back to the defaults.
 
 Use CSS color names such as `orange`, `red`, `springgreen`, `limegreen`, or `cyan`. See the [W3Schools CSS color names reference](https://www.w3schools.com/cssref/css_colors.php) for the available names and color previews. Defaults are `red`, `orange`, and `springgreen`.
 
-Both thresholds are always configured in mmol/L, even when displaying mg/dL. They control graph colors, not the automatically scaled graph axis or alarms. The minimum must be positive and the maximum must exceed it; invalid settings show a notice and use 3.9–10 mmol/L. Segments crossing a threshold change color at the crossing.
+Both thresholds are always configured in mmol/L, even when displaying mg/dL. They control graph colors and dotted horizontal reference lines, not alarms. The automatically scaled graph axis includes both thresholds as well as all available readings so both guides stay visible. The minimum must be positive and the maximum must exceed it; invalid settings show a notice and use 3.9–10 mmol/L. Segments crossing a threshold change color at the crossing.
 
 Server JSON:
 

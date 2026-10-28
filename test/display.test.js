@@ -7,11 +7,16 @@ const path = require("node:path");
 
 function makeModule(fixedNow) {
   let definition;
-  const strokes = [], fills = [], labels = [];
+  const strokes = [], fills = [], labels = [], dottedStrokes = [];
+  let dash = [], segment = [];
   const context = {
-    beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, fillText(text, x, y) { labels.push({ text, x, y, align: this.textAlign }); },
+    beginPath() { segment = []; }, moveTo(x, y) { segment.push([x, y]); }, lineTo(x, y) { segment.push([x, y]); }, arc() {}, fillText(text, x, y) { labels.push({ text, x, y, align: this.textAlign }); },
+    setLineDash(value) { dash = Array.from(value); },
     measureText(text) { return { width: text.length * parseFloat(this.font) * 0.6 }; },
-    stroke() { strokes.push(this.strokeStyle); }, fill() { fills.push(this.fillStyle); }
+    stroke() {
+      if (dash.length) dottedStrokes.push({ color: this.strokeStyle, dash: [...dash], segment: [...segment] });
+      else strokes.push(this.strokeStyle);
+    }, fill() { fills.push(this.fillStyle); }
   };
   const document = { createElement: () => ({
     className: "", textContent: "", style: {}, children: [],
@@ -21,7 +26,7 @@ function makeModule(fixedNow) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../MMM-Libre2.js"), "utf8"), {
     Module: { register(name, module) { definition = module; } }, document, Date: fixedNow === undefined ? Date : class extends Date { static now() { return fixedNow; } }, Math, Number, setInterval, clearInterval
   });
-  return { ...definition, strokes, fills, labels, config: { ...definition.defaults, showGraph: false } };
+  return { ...definition, strokes, fills, labels, dottedStrokes, config: { ...definition.defaults, showGraph: false } };
 }
 const text = root => [root.textContent, ...root.children.map(text)].join(" ");
 
@@ -100,6 +105,47 @@ test("crowded clock labels skip hours without removing hourly gridlines", () => 
       previousRight = left + textWidth;
     }
     assert.equal(module.strokes.filter(color => color === "#333").length, 15);
+  }
+});
+
+test("dotted thresholds stay visible, use configured colors, and convert to mg/dL", () => {
+  for (const units of ["mmol/L", "mg/dL"]) {
+    const module = makeModule();
+    Object.assign(module.config, { showGraph: true, units, minMmol: 4, maxMmol: 9, underColor: "crimson", overColor: "gold" });
+    const now = Date.now() - 1000;
+    module.reading = { current: { mgdl: 126, timestamp: now }, history: [{ mgdl: 126, timestamp: now }] };
+    module.getDom();
+    assert.equal(module.dottedStrokes.length, 2);
+    const [low, high] = module.dottedStrokes;
+    assert.equal(low.color, "crimson"); assert.equal(high.color, "gold");
+    for (const line of [low, high]) {
+      assert.deepEqual(line.dash, [1, 7]);
+      assert.equal(line.segment[0][0], 55); assert.equal(line.segment[1][0], 630);
+      assert.equal(line.segment[0][1], line.segment[1][1]);
+      assert.ok(line.segment[0][1] > 25 && line.segment[0][1] < 180);
+    }
+    // Axis spans 3–10 mmol/L (54–180 mg/dL), so geometry is unit-independent.
+    assert.ok(Math.abs(low.segment[0][1] - (180 - 155 / 7)) < 0.001);
+    assert.ok(Math.abs(high.segment[0][1] - (180 - 6 * 155 / 7)) < 0.001);
+  }
+});
+
+test("graph and footer visibility are independent and leave no placeholder elements", () => {
+  const module = makeModule();
+  const now = Date.now() - 1000;
+  module.reading = { current: { mgdl: 126, timestamp: now }, history: [{ mgdl: 126, timestamp: now }] };
+  for (const showGraph of [true, false]) {
+    for (const showGraphLabel of [true, false]) {
+      for (const showSecondaryDisplayText of [true, false]) {
+        Object.assign(module.config, { showGraph, showGraphLabel, showSecondaryDisplayText });
+        const root = module.getDom();
+        const has = name => root.children.some(child => child.className === name);
+        assert.equal(has("libre-graph"), showGraph);
+        assert.equal(has("libre-graph-label"), showGraph && showGraphLabel);
+        assert.equal(has("libre-note"), showSecondaryDisplayText);
+        assert.equal(root.style.height, "360px");
+      }
+    }
   }
 });
 

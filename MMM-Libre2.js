@@ -1,7 +1,7 @@
 /* global Module */
 Module.register("MMM-Libre2", {
   defaults: {
-    units: "mmol/L", staleAfterMinutes: 10, showGraph: true,
+    units: "mmol/L", staleAfterMinutes: 10, showGraph: true, showGraphLabel: true,
     graphHours: 6, width: 320, height: 360, animationSpeed: 300,
     minMmol: 3.9, maxMmol: 10, showSecondaryDisplayText: true,
     timeFormat: 24,
@@ -68,14 +68,20 @@ Module.register("MMM-Libre2", {
     const hours = Math.max(1, Math.min(12, Number(this.config.graphHours) || 6));
     const end = Date.now(); const begin = end - hours * 3600000;
     const points = history.filter(p => p.timestamp >= begin && p.timestamp <= end);
-    const label = document.createElement("div"); label.className = "libre-graph-label"; label.textContent = `Last ${hours} hours`; root.appendChild(label);
+    if (this.config.showGraphLabel) {
+      const label = document.createElement("div"); label.className = "libre-graph-label";
+      label.textContent = `Last ${hours} hours`; root.appendChild(label);
+    }
     if (!points.length) return;
     const canvas = document.createElement("canvas"); canvas.width = 640; canvas.height = 220; canvas.className = "libre-graph";
     canvas.setAttribute("role", "img"); canvas.setAttribute("aria-label", `Glucose history over ${hours} hours`); root.appendChild(canvas);
     const ctx = canvas.getContext("2d"); if (!ctx) return;
     const values = points.map(p => mmol ? p.mgdl / 18 : p.mgdl);
-    const min = Math.max(0, Math.min(...values) - (mmol ? 1 : 18));
-    const max = Math.max(...values) + (mmol ? 1 : 18);
+    const thresholds = this.getThresholds();
+    const low = mmol ? thresholds.min : thresholds.min * 18;
+    const high = mmol ? thresholds.max : thresholds.max * 18;
+    const min = Math.max(0, Math.min(low, ...values) - (mmol ? 1 : 18));
+    const max = Math.max(high, ...values) + (mmol ? 1 : 18);
     const x = time => 55 + (time - begin) / (end - begin) * 575;
     const y = value => 180 - (value - min) / (max - min) * 155;
     const renderedWidth = root.clientWidth || parseFloat(root.style.width) || 320;
@@ -115,9 +121,13 @@ Module.register("MMM-Libre2", {
       ctx.fillText(tick.text, tick.x, 215);
     }
     ctx.textAlign = "left";
-    const thresholds = this.getThresholds();
-    const low = mmol ? thresholds.min : thresholds.min * 18;
-    const high = mmol ? thresholds.max : thresholds.max * 18;
+    ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.setLineDash([1, 7]);
+    [[low, this.config.underColor], [high, this.config.overColor]].forEach(([value, color]) => {
+      ctx.strokeStyle = color;
+      ctx.beginPath(); ctx.moveTo(55, y(value)); ctx.lineTo(630, y(value)); ctx.stroke();
+    });
+    // History lines remain solid, independent of the dotted reference lines.
+    ctx.setLineDash([]); ctx.lineCap = "butt";
     const color = value => value < low ? this.config["underColor"]
       : value > high ? this.config["overColor"] : this.config["withinRangeColor"];
     ctx.lineWidth = 3;

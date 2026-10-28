@@ -12,6 +12,7 @@
     "withinRangeColor": "springgreen",
     staleAfterMinutes: 10,
     showGraph: true,
+    showGraphLabel: true,
     graphHours: 6,
     width: 320,
     height: 360,
