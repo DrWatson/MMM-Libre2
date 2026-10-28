@@ -73,7 +73,7 @@ Libre sensor -> official Libre phone app -> Abbott cloud
 
 You need an active supported sensor, a compatible phone, internet access, an email address for a follower account, and a computer with a screen for MagicMirror. A Raspberry Pi with a desktop operating system or a Linux desktop is a suitable starting point. Windows instructions are also provided below. A physical mirror is optional.
 
-The module has no third-party npm dependencies; MagicMirror itself has dependencies installed separately. A paid developer account is not required.
+The module has no third-party runtime npm dependencies; MagicMirror itself has dependencies installed separately. A paid developer account is not required.
 
 ## 1. Set up the official Libre phone app
 
@@ -334,13 +334,31 @@ If a credential is published, revoke/change it immediately. Deleting the visible
 
 ## Development and automated tests
 
-From the module directory, with Node installed:
+For development, use Node.js 20.19+, 22.13+, or 24+ (and meet the requirements of your MagicMirror release). From the module directory, install the locked development tools:
 
 ```sh
+npm ci
+```
+
+Run ESLint and the automated tests together:
+
+```sh
+npm run check
+```
+
+Individual commands:
+
+```sh
+npm run lint
+npm run lint:fix
 npm test
 ```
 
-No account, sensor, network access, MagicMirror installation, or npm dependency installation is needed for the mocked tests. They cover login/redirect behavior, timestamps, unit conversion, graph colors and crossings, dimensions, status wording, clock formats, and hourly labels. GitHub Actions runs this suite on Node 22 and 24 after pushes and pull requests. This is not evidence of current live API compatibility or actual MagicMirror layout testing.
+`lint:fix` applies ESLint's available automatic fixes; review the changes afterward. ESLint uses the recommended JavaScript rules with separate browser/MagicMirror and Node.js environments. `config.example.js` is excluded because it is a paste-in configuration object rather than a standalone program. Private local settings are not part of the source tree.
+
+No account, sensor, network access, or MagicMirror installation is needed to run the mocked tests after the development dependencies are installed. Tests cover login/redirect behavior, timestamps, unit conversion, graph colors and crossings, dimensions, status wording, clock formats, and hourly labels. GitHub Actions installs dependencies with `npm ci` and runs lint and tests on Node 22 and 24 after pushes and pull requests. Dependabot checks npm and GitHub Actions monthly. This is not evidence of current live API compatibility or actual MagicMirror layout testing.
+
+Installing or running the module normally does not require ESLint or these development tools.
 
 ## License
 

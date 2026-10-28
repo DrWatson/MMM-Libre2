@@ -7,7 +7,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "check": "npm run lint && npm test"
   },
   "license": "MIT",
   "keywords": [
@@ -15,5 +18,10 @@
     "librelinkup",
     "glucose",
     "module"
-  ]
+  ],
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0"
+  }
 }

@@ -1,4 +1,3 @@
-/* global Module */
 Module.register("MMM-Libre2", {
   defaults: {
     units: "mmol/L", staleAfterMinutes: 10, showGraph: true, showGraphLabel: true,
