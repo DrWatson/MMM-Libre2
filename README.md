@@ -69,7 +69,7 @@ Libre sensor -> official Libre phone app -> Abbott cloud
 
 You need an active supported sensor, a compatible phone, internet access, an email address for a follower account, and a computer with a screen for MagicMirror. A Raspberry Pi with a desktop operating system or a Linux desktop is a suitable starting point. Windows instructions are also provided below. A physical mirror is optional.
 
-No WatchDrip, GlucoDataHandler, Nightscout, Docker, PM2, or paid developer account is required. The module has no third-party npm dependencies; MagicMirror itself has dependencies installed separately.
+The module has no third-party npm dependencies; MagicMirror itself has dependencies installed separately. A paid developer account is not required.
 
 ## 1. Set up the official Libre phone app
 
@@ -371,6 +371,5 @@ Git may request your identity and GitHub authentication. Configure the desired a
 - [MagicMirror releases and runtime requirements](https://github.com/MagicMirrorOrg/MagicMirror/releases)
 - [MagicMirror module API](https://develop-docs.magicmirror.builders/module-development/core-module-file.html)
 - [LibreLinkUp official setup](https://www.librelinkup.com/articles/getting-started)
-- [Unofficial API compatibility discussion](https://github.com/pachi81/GlucoDataHandler/wiki/LibreLinkUp)
 
 This project is independent of Abbott, MagicMirror, and other glucose-display projects. It does not bundle their source code. Product names belong to their respective owners.
