@@ -284,7 +284,7 @@ Browser config:
 
 Dimensions apply to the module content, excluding MagicMirror's optional header. Small dimensions allow scrolling rather than clipping the content. The graph expands into available height. Invalid dimensions fall back to the defaults.
 
-Use CSS color names such as `orange`, `red`, `springgreen`, `limegreen`, or `cyan`. Defaults are `red`, `orange`, and `springgreen`.
+Use CSS color names such as `orange`, `red`, `springgreen`, `limegreen`, or `cyan`. See the [W3Schools CSS color names reference](https://www.w3schools.com/cssref/css_colors.php) for the available names and color previews. Defaults are `red`, `orange`, and `springgreen`.
 
 Both thresholds are always configured in mmol/L, even when displaying mg/dL. They control graph colors, not the automatically scaled graph axis or alarms. The minimum must be positive and the maximum must exceed it; invalid settings show a notice and use 3.9–10 mmol/L. Segments crossing a threshold change color at the crossing.
 
