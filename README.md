@@ -11,9 +11,9 @@ This is a secondary information display, not a medical device or glucose alarm. 
 ## Features
 
 - Current glucose in mmol/L or mg/dL and a trend arrow.
-- One status line: `Measured at 1:05 PM (2 minutes ago)` or `(less than 1 minute ago)`.
+- One status line: `As of 1:05 PM (2 minutes ago)` or `(<1 minute ago)`.
 - Optional 12-hour or 24-hour clock.
-- History graph with hourly gridlines and local clock-hour labels (for example `1PM` in 12-hour mode or `13` in 24-hour mode).
+- History graph with crisp HTML text labels that keep their proportions as the graph resizes, hourly gridlines, and local clock-hour labels (for example `1PM` in 12-hour mode or `13` in 24-hour mode).
 - Configurable dimensions, visual thresholds, named colors, and footer visibility.
 - Dotted horizontal guides at `minMmol` and `maxMmol`, using `underColor` and `overColor`.
 - Red below the minimum, springgreen within the range, orange above the maximum by default.
@@ -27,7 +27,7 @@ These two illustrations use **invented readings**, not personal health data. The
 
 A steady 7.0 mmol/L reading, green history, a 12-hour clock without a leading zero, and the secondary-display footer enabled.
 
-<img src="docs/images/in-range.png" alt="Mockup: 7.0 mmol/L with a steady trend, measured at 1:05 PM two minutes ago, green six-hour history with hourly labels, and the secondary-display footer." width="400">
+<img src="docs/images/in-range.png" alt="Mockup: 7.0 mmol/L with a steady trend, as of 1:05 PM two minutes ago, green six-hour history with hourly labels, and the secondary-display footer." width="400">
 
 Relevant settings (inside the module's `config`):
 
@@ -47,7 +47,7 @@ showSecondaryDisplayText: true
 
 An 11.2 mmol/L reading with a rising trend, a 24-hour clock, and both the history heading and footer hidden. The graph expands into the freed space. Earlier history dips below 3.9 (red), returns to the configured range (green), then rises above 10 (orange). The large current number remains white; configured threshold colors apply to the graph line and points.
 
-<img src="docs/images/threshold-colors.png" alt="Mockup: 11.2 mmol/L with a rising trend, measured at 13:05 less than one minute ago, and six-hour history changing from green to red to green to orange. Footer hidden." width="400">
+<img src="docs/images/threshold-colors.png" alt="Mockup: 11.2 mmol/L with a rising trend, as of 13:05 <1 minute ago, and six-hour history changing from green to red to green to orange. Footer hidden." width="400">
 
 Use the first example's settings with:
 

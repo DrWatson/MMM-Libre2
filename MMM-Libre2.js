@@ -44,9 +44,9 @@ Module.register("MMM-Libre2", {
     add(`${value} ${arrows[r.trend] || "—"}`, "libre-value bright");
     add(mmol ? "mmol/L" : "mg/dL", "libre-units");
     const minutesAgo = Math.floor(Math.max(0, age) / 60000);
-    const readingAge = age < 60000 ? "less than 1 minute ago"
+    const readingAge = age < 60000 ? "<1 minute ago"
       : `${minutesAgo} ${minutesAgo === 1 ? "minute" : "minutes"} ago`;
-    add(`Measured at ${new Date(r.timestamp).toLocaleTimeString([], {
+    add(`As of ${new Date(r.timestamp).toLocaleTimeString([], {
       hour: Number(this.config.timeFormat) === 12 ? "numeric" : "2-digit", minute: "2-digit",
       hourCycle: Number(this.config.timeFormat) === 12 ? "h12" : "h23"
     })} (${readingAge})`, "libre-time");
@@ -72,8 +72,20 @@ Module.register("MMM-Libre2", {
       label.textContent = `Last ${hours} hours`; root.appendChild(label);
     }
     if (!points.length) return;
-    const canvas = document.createElement("canvas"); canvas.width = 640; canvas.height = 220; canvas.className = "libre-graph";
-    canvas.setAttribute("role", "img"); canvas.setAttribute("aria-label", `Glucose history over ${hours} hours`); root.appendChild(canvas);
+    const graph = document.createElement("div"); graph.className = "libre-graph";
+    graph.setAttribute("role", "img"); graph.setAttribute("aria-label", `Glucose history over ${hours} hours`); root.appendChild(graph);
+    const canvas = document.createElement("canvas"); canvas.width = 640; canvas.height = 220; canvas.className = "libre-graph-canvas";
+    canvas.setAttribute("aria-hidden", "true"); graph.appendChild(canvas);
+    // Real text elements retain their proportions when the graph changes height.
+    const addAxisLabel = (text, px, py, align = "left", vertical = "center") => {
+      const label = document.createElement("span"); label.className = "libre-axis-label";
+      label.textContent = text;
+      label.style.left = `${px / 640 * 100}%`; label.style.top = `${py / 220 * 100}%`;
+      label.style.textAlign = align;
+      const offsetX = align === "right" ? "-100%" : align === "center" ? "-50%" : "0";
+      label.style.transform = `translate(${offsetX}, ${vertical === "bottom" ? "-100%" : "-50%"})`;
+      graph.appendChild(label);
+    };
     const ctx = canvas.getContext("2d"); if (!ctx) return;
     const values = points.map(p => mmol ? p.mgdl / 18 : p.mgdl);
     const thresholds = this.getThresholds();
@@ -84,10 +96,10 @@ Module.register("MMM-Libre2", {
     const x = time => 55 + (time - begin) / (end - begin) * 575;
     const y = value => 180 - (value - min) / (max - min) * 155;
     const renderedWidth = root.clientWidth || parseFloat(root.style.width) || 320;
-    // Keep axis text at 10 screen pixels as the canvas scales with module width.
-    ctx.font = `${10 * canvas.width / renderedWidth}px sans-serif`; ctx.fillStyle = "#aaa"; ctx.strokeStyle = "#333";
+    // Measure the HTML labels in screen pixels; canvas is used only for lines.
+    ctx.font = "12px sans-serif"; ctx.strokeStyle = "#333";
     [min, (min + max) / 2, max].forEach(value => {
-      ctx.fillText(mmol ? value.toFixed(1) : Math.round(value), 0, y(value) + 7);
+      addAxisLabel(mmol ? value.toFixed(1) : String(Math.round(value)), 0, y(value));
       ctx.beginPath(); ctx.moveTo(55, y(value)); ctx.lineTo(630, y(value)); ctx.stroke();
     });
     // Keep hourly gridlines, but thin labels until their measured bounds fit.
@@ -104,7 +116,7 @@ Module.register("MMM-Libre2", {
         ? `${clockHour % 12 || 12}${clockHour < 12 ? "AM" : "PM"}`
         : String(clockHour).padStart(2, "0");
       const align = hour === 0 ? "right" : hour === tickCount ? "left" : "center";
-      const width = ctx.measureText(text).width;
+      const width = ctx.measureText(text).width * canvas.width / renderedWidth;
       const left = align === "right" ? tickX - width : align === "left" ? tickX : tickX - width / 2;
       ticks.push({ hour, text, x: tickX, align, left, right: left + width });
     }
@@ -116,10 +128,8 @@ Module.register("MMM-Libre2", {
       labelStep *= 2;
     }
     for (const tick of visibleTicks) {
-      ctx.textAlign = tick.align;
-      ctx.fillText(tick.text, tick.x, 215);
+      addAxisLabel(tick.text, tick.x, 215, tick.align, "bottom");
     }
-    ctx.textAlign = "left";
     ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.setLineDash([1, 7]);
     [[low, this.config.underColor], [high, this.config.overColor]].forEach(([value, color]) => {
       ctx.strokeStyle = color;

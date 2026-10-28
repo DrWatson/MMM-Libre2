@@ -10,7 +10,8 @@ function makeModule(fixedNow) {
   const strokes = [], fills = [], labels = [], dottedStrokes = [];
   let dash = [], segment = [];
   const context = {
-    beginPath() { segment = []; }, moveTo(x, y) { segment.push([x, y]); }, lineTo(x, y) { segment.push([x, y]); }, arc() {}, fillText(text, x, y) { labels.push({ text, x, y, align: this.textAlign }); },
+    beginPath() { segment = []; }, moveTo(x, y) { segment.push([x, y]); }, lineTo(x, y) { segment.push([x, y]); }, arc() {},
+    fillText() { throw new Error("Axis labels must be real text, not rasterized canvas text"); },
     setLineDash(value) { dash = Array.from(value); },
     measureText(text) { return { width: text.length * parseFloat(this.font) * 0.6 }; },
     stroke() {
@@ -20,7 +21,13 @@ function makeModule(fixedNow) {
   };
   const document = { createElement: () => ({
     className: "", textContent: "", style: {}, children: [],
-    classList: { add() {} }, appendChild(child) { this.children.push(child); },
+    classList: { add() {} }, appendChild(child) {
+      this.children.push(child);
+      if (child.className === "libre-axis-label") labels.push({
+        text: child.textContent, x: parseFloat(child.style.left) * 6.4,
+        y: Math.round(parseFloat(child.style.top) * 2.2 * 1000) / 1000, align: child.style.textAlign
+      });
+    },
     setAttribute() {}, getContext: () => context
   }) };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../MMM-Libre2.js"), "utf8"), {
@@ -41,15 +48,15 @@ test("measurement time supports both clock formats, including midnight", () => {
         hour: format === 12 ? "numeric" : "2-digit", minute: "2-digit", hourCycle: format === 12 ? "h12" : "h23"
       });
       const measured = module.getDom().children.find(child => child.className === "libre-time");
-      assert.ok(measured.textContent.startsWith(`Measured at ${expected} (`));
-      if (format === 12) assert.doesNotMatch(measured.textContent, /Measured at 0\d:/);
+      assert.ok(measured.textContent.startsWith(`As of ${expected} (`));
+      if (format === 12) assert.doesNotMatch(measured.textContent, /As of 0\d:/);
     }
   }
 });
 
 test("combines measurement time and age in one status with singular and plural minutes", () => {
   const module = makeModule();
-  for (const [age, expected] of [[30000, "less than 1 minute ago"], [90000, "1 minute ago"], [150000, "2 minutes ago"]]) {
+  for (const [age, expected] of [[30000, "<1 minute ago"], [90000, "1 minute ago"], [150000, "2 minutes ago"]]) {
     module.reading = { current: { mgdl: 126, timestamp: Date.now() - age, trend: 3 } };
     const root = module.getDom();
     const statuses = root.children.filter(child => child.className === "libre-time");
@@ -99,7 +106,7 @@ test("crowded clock labels skip hours without removing hourly gridlines", () => 
     assert.equal(ticks.at(-1).text, "1PM");
     let previousRight = -Infinity;
     for (const tick of ticks) {
-      const textWidth = tick.text.length * (10 * 640 / width) * 0.6;
+      const textWidth = tick.text.length * (12 * 640 / width) * 0.6;
       const left = tick.align === "left" ? tick.x : tick.align === "right" ? tick.x - textWidth : tick.x - textWidth / 2;
       assert.ok(left >= previousRight + 8 * 640 / width);
       previousRight = left + textWidth;

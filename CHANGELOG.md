@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### Fixed
 
+- Render graph axis labels as HTML text instead of scaling rasterized canvas text, preserving sharpness and proportions when the graph resizes.
+
 ### Documentation
 
 - Document development dependency installation, linting, and combined checks.
