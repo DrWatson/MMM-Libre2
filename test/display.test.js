@@ -5,11 +5,12 @@ const vm = require("node:vm");
 const fs = require("node:fs");
 const path = require("node:path");
 
-function makeModule() {
+function makeModule(fixedNow) {
   let definition;
   const strokes = [], fills = [], labels = [];
   const context = {
-    beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, fillText(text, x, y) { labels.push({ text, x, y }); },
+    beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, fillText(text, x, y) { labels.push({ text, x, y, align: this.textAlign }); },
+    measureText(text) { return { width: text.length * parseFloat(this.font) * 0.6 }; },
     stroke() { strokes.push(this.strokeStyle); }, fill() { fills.push(this.fillStyle); }
   };
   const document = { createElement: () => ({
@@ -18,7 +19,7 @@ function makeModule() {
     setAttribute() {}, getContext: () => context
   }) };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../MMM-Libre2.js"), "utf8"), {
-    Module: { register(name, module) { definition = module; } }, document, Date, Math, Number, setInterval, clearInterval
+    Module: { register(name, module) { definition = module; } }, document, Date: fixedNow === undefined ? Date : class extends Date { static now() { return fixedNow; } }, Math, Number, setInterval, clearInterval
   });
   return { ...definition, strokes, fills, labels, config: { ...definition.defaults, showGraph: false } };
 }
@@ -53,15 +54,52 @@ test("combines measurement time and age in one status with singular and plural m
   }
 });
 
-test("labels every hour throughout six- and twelve-hour graph windows", () => {
-  for (const hours of [6, 12]) {
-    const module = makeModule(); module.config.showGraph = true; module.config.graphHours = hours;
-    const now = Date.now() - 1000;
-    module.reading = { current: { mgdl: 126, timestamp: now, trend: 3 }, history: [{ mgdl: 126, timestamp: now }] };
+test("hour gridlines align with local clock hours and follow both clock formats", () => {
+  const end = new Date(2026, 9, 27, 13, 30).getTime();
+  for (const format of [12, 24]) {
+    const module = makeModule(end);
+    Object.assign(module.config, { showGraph: true, graphHours: 6, width: 1200, timeFormat: format });
+    module.reading = { current: { mgdl: 126, timestamp: end, trend: 3 }, history: [{ mgdl: 126, timestamp: end }] };
     module.getDom();
     const ticks = module.labels.filter(label => label.y === 215);
-    assert.deepEqual(ticks.map(label => label.text), Array.from({ length: hours + 1 }, (_, i) => i === hours ? "Now" : `−${hours - i}h`));
-    for (let i = 1; i < ticks.length; i++) assert.ok(Math.abs(ticks[i].x - ticks[i - 1].x - 575 / hours) < 0.001);
+    assert.deepEqual(ticks.map(label => label.text), format === 12
+      ? ["8AM", "9AM", "10AM", "11AM", "12PM", "1PM"]
+      : ["08", "09", "10", "11", "12", "13"]);
+    assert.ok(Math.abs(ticks[0].x - (55 + 575 / 12)) < 0.001);
+    for (let i = 1; i < ticks.length; i++) assert.ok(Math.abs(ticks[i].x - ticks[i - 1].x - 575 / 6) < 0.001);
+  }
+});
+
+test("hour labels cross midnight without zero-padding twelve-hour labels", () => {
+  const end = new Date(2026, 9, 28, 1, 30).getTime();
+  for (const format of [12, 24]) {
+    const module = makeModule(end);
+    Object.assign(module.config, { showGraph: true, graphHours: 3, width: 1000, timeFormat: format });
+    module.reading = { current: { mgdl: 126, timestamp: end }, history: [{ mgdl: 126, timestamp: end }] };
+    module.getDom();
+    assert.deepEqual(module.labels.filter(t => t.y === 215).map(t => t.text), format === 12
+      ? ["11PM", "12AM", "1AM"] : ["23", "00", "01"]);
+  }
+});
+
+test("crowded clock labels skip hours without removing hourly gridlines", () => {
+  const end = new Date(2026, 9, 27, 13, 30).getTime();
+  for (const width of [320, 80]) {
+    const module = makeModule(end);
+    Object.assign(module.config, { showGraph: true, graphHours: 12, width, timeFormat: 12 });
+    module.reading = { current: { mgdl: 126, timestamp: end, trend: 3 }, history: [{ mgdl: 126, timestamp: end }] };
+    module.getDom();
+    const ticks = module.labels.filter(label => label.y === 215);
+    assert.ok(ticks.length < 12);
+    assert.equal(ticks.at(-1).text, "1PM");
+    let previousRight = -Infinity;
+    for (const tick of ticks) {
+      const textWidth = tick.text.length * (10 * 640 / width) * 0.6;
+      const left = tick.align === "left" ? tick.x : tick.align === "right" ? tick.x - textWidth : tick.x - textWidth / 2;
+      assert.ok(left >= previousRight + 8 * 640 / width);
+      previousRight = left + textWidth;
+    }
+    assert.equal(module.strokes.filter(color => color === "#333").length, 15);
   }
 });
 

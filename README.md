@@ -11,7 +11,7 @@ This is a secondary information display, not a medical device or glucose alarm. 
 - Current glucose in mmol/L or mg/dL and a trend arrow.
 - One status line: `Measured at 1:05 PM (2 minutes ago)` or `(less than 1 minute ago)`.
 - Optional 12-hour clock without a leading zero, or a 24-hour clock.
-- History graph with hourly gridlines and labels counting back from Now.
+- History graph with hourly gridlines and local clock-hour labels (for example `1PM` in 12-hour mode or `13` in 24-hour mode). If labels would overlap, every other label is hidden; labels are thinned again if needed for very narrow graphs. All hourly gridlines remain visible.
 - Configurable dimensions, visual thresholds, named colors, and footer visibility.
 - Red below the minimum, springgreen within the range, orange above the maximum by default.
 - Stale and cached-data notices; gaps over 20 minutes are not connected.
@@ -269,7 +269,7 @@ Browser config:
 | Option | Default | Meaning |
 |---|---|---|
 | units | `mmol/L` | Use `mg/dL` to display whole-number mg/dL |
-| timeFormat | `24` | Measurement time: `24` for 00:00–23:59 or `12` for a clock with AM/PM and no leading zero on the hour, such as 1:05 PM (localized to your browser). Hourly graph labels remain relative to Now. |
+| timeFormat | `24` | Measurement time: `24` for 00:00–23:59 or `12` for a clock with AM/PM and no leading zero on the hour, such as 1:05 PM (localized to your browser). Graph labels also use this clock format, with no space before AM/PM in 12-hour mode and zero-padded hours in 24-hour mode. Gridlines align to the hour in the mirror computer’s timezone. |
 | staleAfterMinutes | `10` | Age of sensor reading that triggers the stale warning |
 | showGraph | `true` | Display available history |
 | graphHours | `6` | Graph window, limited to 1–12 hours |

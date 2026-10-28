@@ -78,18 +78,41 @@ Module.register("MMM-Libre2", {
     const max = Math.max(...values) + (mmol ? 1 : 18);
     const x = time => 55 + (time - begin) / (end - begin) * 575;
     const y = value => 180 - (value - min) / (max - min) * 155;
-    ctx.font = "20px sans-serif"; ctx.fillStyle = "#aaa"; ctx.strokeStyle = "#333";
+    const renderedWidth = root.clientWidth || parseFloat(root.style.width) || 320;
+    // Keep axis text at 10 screen pixels as the canvas scales with module width.
+    ctx.font = `${10 * canvas.width / renderedWidth}px sans-serif`; ctx.fillStyle = "#aaa"; ctx.strokeStyle = "#333";
     [min, (min + max) / 2, max].forEach(value => {
       ctx.fillText(mmol ? value.toFixed(1) : Math.round(value), 0, y(value) + 7);
       ctx.beginPath(); ctx.moveTo(55, y(value)); ctx.lineTo(630, y(value)); ctx.stroke();
     });
-    // Mark each elapsed hour across the rolling history window.
-    ctx.textAlign = "center";
-    for (let hour = Math.floor(hours); hour >= 0; hour--) {
-      const tickX = x(end - hour * 3600000);
+    // Keep hourly gridlines, but thin labels until their measured bounds fit.
+    const labelGap = 8 * canvas.width / renderedWidth;
+    const ticks = [];
+    const lastHour = new Date(end); lastHour.setMinutes(0, 0, 0);
+    const tickCount = Math.floor((lastHour.getTime() - begin) / 3600000);
+    for (let hour = tickCount; hour >= 0; hour--) {
+      const tickTime = new Date(lastHour.getTime() - hour * 3600000);
+      const tickX = x(tickTime.getTime());
       ctx.beginPath(); ctx.moveTo(tickX, 25); ctx.lineTo(tickX, 180); ctx.stroke();
-      ctx.textAlign = hour === 0 ? "right" : hour === hours ? "left" : "center";
-      ctx.fillText(hour === 0 ? "Now" : `−${hour}h`, tickX, 215);
+      const clockHour = tickTime.getHours();
+      const text = Number(this.config.timeFormat) === 12
+        ? `${clockHour % 12 || 12}${clockHour < 12 ? "AM" : "PM"}`
+        : String(clockHour).padStart(2, "0");
+      const align = hour === 0 ? "right" : hour === tickCount ? "left" : "center";
+      const width = ctx.measureText(text).width;
+      const left = align === "right" ? tickX - width : align === "left" ? tickX : tickX - width / 2;
+      ticks.push({ hour, text, x: tickX, align, left, right: left + width });
+    }
+    let labelStep = 1, visibleTicks;
+    while (true) {
+      visibleTicks = ticks.filter(tick => tick.hour % labelStep === 0);
+      const overlaps = visibleTicks.some((tick, index) => index && tick.left < visibleTicks[index - 1].right + labelGap);
+      if (!overlaps) break;
+      labelStep *= 2;
+    }
+    for (const tick of visibleTicks) {
+      ctx.textAlign = tick.align;
+      ctx.fillText(tick.text, tick.x, 215);
     }
     ctx.textAlign = "left";
     const thresholds = this.getThresholds();
