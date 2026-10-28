@@ -340,35 +340,6 @@ npm test
 
 No account, sensor, network access, MagicMirror installation, or npm dependency installation is needed for the mocked tests. They cover login/redirect behavior, timestamps, unit conversion, graph colors and crossings, dimensions, status wording, clock formats, and hourly labels. GitHub Actions runs this suite on Node 22 and 24 after pushes and pull requests. This is not evidence of current live API compatibility or actual MagicMirror layout testing.
 
-## Publish this project on GitHub
-
-1. Sign in to [GitHub](https://github.com/) or create an account.
-2. Create an empty repository called `MMM-Libre2`. Do not add a generated README or license during creation; the prepared project already contains both files.
-3. Upload **the contents** of the `MMM-Libre2` folder to the repository root, not the outer ZIP or a nested project folder. Include `.gitignore` and `.github/workflows/test.yml`; some file pickers hide dotfiles. Git is recommended to ensure these are included.
-4. Review the files before publishing. Only the example configurations belong in the repository. No private account configuration is needed for publishing or CI.
-
-For Git, open a terminal **inside this module folder**, replace the username placeholder below, and run:
-
-```sh
-git init
-git add .
-git status --short
-git diff --cached
-```
-
-Review that staged diff for private data, then:
-
-```sh
-git commit -m "Initial MMM-Libre2 module"
-git branch -M main
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/MMM-Libre2.git
-git push -u origin main
-```
-
-Git may request your identity and GitHub authentication. Configure the desired author identity on your computer; use a GitHub-provided no-reply email if you do not want a personal email in commit metadata. No author identity or personal repository URL is preconfigured in this project. Follow [GitHub's authentication instructions](https://docs.github.com/en/authentication) if prompted.
-
-`private: true` in `package.json` prevents accidental npm publication; it does not prevent a public GitHub repository. This project is licensed under the [MIT License](LICENSE).
-
 ## License
 
 [MIT License](LICENSE). Copyright (c) 2026 MMM-Libre2 contributors.
