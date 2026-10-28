@@ -1,8 +1,10 @@
 # MMM-Libre2
 
+[GitHub repository](https://github.com/DrWatson/MMM-Libre2)
+
 A MagicMirror² module for displaying glucose readings and history through an **unofficial LibreLinkUp cloud connection**. It does not connect directly to a sensor or read the Libre phone app's local files.
 
-**Status:** experimental. Automated tests use synthetic readings and mocked network responses. A real Abbott account and an installed MagicMirror have not been used to validate this project. Abbott can change its private API at any time; completing the official app setup does not guarantee this integration will work.
+Abbott can change its private API at any time; completing the official app setup does not guarantee this integration will work.
 
 This is a secondary information display, not a medical device or glucose alarm. Follow the instructions for the approved Libre app/reader for treatment decisions and keep its alarms active.
 
@@ -10,8 +12,8 @@ This is a secondary information display, not a medical device or glucose alarm. 
 
 - Current glucose in mmol/L or mg/dL and a trend arrow.
 - One status line: `Measured at 1:05 PM (2 minutes ago)` or `(less than 1 minute ago)`.
-- Optional 12-hour clock without a leading zero, or a 24-hour clock.
-- History graph with hourly gridlines and local clock-hour labels (for example `1PM` in 12-hour mode or `13` in 24-hour mode). If labels would overlap, every other label is hidden; labels are thinned again if needed for very narrow graphs. All hourly gridlines remain visible.
+- Optional 12-hour or 24-hour clock.
+- History graph with hourly gridlines and local clock-hour labels (for example `1PM` in 12-hour mode or `13` in 24-hour mode).
 - Configurable dimensions, visual thresholds, named colors, and footer visibility.
 - Dotted horizontal guides at `minMmol` and `maxMmol`, using `underColor` and `overColor`.
 - Red below the minimum, springgreen within the range, orange above the maximum by default.
@@ -146,7 +148,7 @@ These are the current upstream commands. For a different release or installation
 
 ## 4. Install MMM-Libre2
 
-Download this repository using GitHub's **Code -> Download ZIP**. Extract it. Rename the extracted repository folder (which may end in `-main`) to exactly `MMM-Libre2`, then move that folder into `MagicMirror/modules`.
+Open [DrWatson/MMM-Libre2 on GitHub](https://github.com/DrWatson/MMM-Libre2) and select **Code -> Download ZIP**. Extract it. Rename the extracted repository folder (which may end in `-main`) to exactly `MMM-Libre2`, then move that folder into `MagicMirror/modules`.
 
 The result must look like this, without an extra nested folder:
 
@@ -162,11 +164,11 @@ MagicMirror/
       package.json
 ```
 
-Alternatively, clone the published repository into that folder. Replace `YOUR_GITHUB_USERNAME` with the repository owner's GitHub username:
+Alternatively, clone the repository into that folder:
 
 ```sh
 cd /path/to/MagicMirror/modules
-git clone https://github.com/YOUR_GITHUB_USERNAME/MMM-Libre2.git MMM-Libre2
+git clone https://github.com/DrWatson/MMM-Libre2.git MMM-Libre2
 ```
 
 `/path/to/MagicMirror` is a placeholder for the actual installation folder. No npm install is needed inside this module. Do not install a package called `node_helper`; MagicMirror supplies that API.
