@@ -1,0 +1,27 @@
+# Dependencies and generated artifacts
+node_modules/
+coverage/
+*.zip
+*.log
+npm-debug.log*
+
+# Private local settings; examples remain publishable
+config.json
+config.js
+config.local.*
+server-config.json
+credentials.json
+credentials*.json
+secrets/
+.config/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

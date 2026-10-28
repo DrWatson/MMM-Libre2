@@ -1,0 +1,7 @@
+{
+  "email": "YOUR_FOLLOWER_EMAIL",
+  "password": "YOUR_FOLLOWER_PASSWORD",
+  "region": "",
+  "apiVersion": "4.17.0",
+  "updateInterval": 60000
+}
